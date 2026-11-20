@@ -1,0 +1,15 @@
+{
+  "name": "gravity-wells",
+  "version": "1.0.0",
+  "description": "Gravity Wells: simultaneous-turn gravity artillery. Bend your shot around stars and black holes; everyone fires at once.",
+  "main": "server.js",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

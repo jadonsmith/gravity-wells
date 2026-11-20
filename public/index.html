@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Gravity Wells</title>
+<meta name="description" content="Simultaneous-turn gravity artillery. Bend your shot around stars, moons and black holes. Everyone fires at once; last planet standing wins.">
+<meta name="theme-color" content="#050414">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23050414'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23ffc94d'/%3E%3Cpath d='M10 44c10-2 26-16 28-28' fill='none' stroke='%23ff5d73' stroke-width='3.5' stroke-linecap='round'/%3E%3Ccircle cx='10' cy='44' r='5' fill='%234dd4ff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<a class="hub-link" href="https://play.jadon.me/"><span aria-hidden="true">←</span> All games</a>
+
+<canvas id="space" aria-hidden="true"></canvas>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<!-- ───────── match HUD ───────── -->
+<div id="hud" hidden>
+  <div class="top">
+    <button class="chip" id="btn-leave" type="button"><span aria-hidden="true">←</span> Leave</button>
+    <div class="turn">
+      <p class="turn-l"><span id="turn-n">Turn 1</span> · <span id="turn-ph">Aim</span></p>
+      <div class="timer"><i id="timer-fill"></i></div>
+    </div>
+    <button class="chip icon" id="btn-mute" type="button" aria-label="Toggle sound">🔊</button>
+  </div>
+
+  <ul class="roster" id="roster" aria-label="Planets"></ul>
+
+  <div class="callout" id="callout" aria-live="polite"></div>
+
+  <div class="aimbar" id="aimbar">
+    <div class="readout"><span class="lbl">Power</span><b id="aim-pow">55%</b></div>
+    <button class="btn lock" id="btn-lock" type="button">Lock in</button>
+    <div class="readout"><span class="lbl">Angle</span><b id="aim-ang">0°</b></div>
+  </div>
+  <p class="hint" id="hint">Drag from your planet to aim. Farther = more power.</p>
+</div>
+
+<!-- ───────── menu ───────── -->
+<div id="menu" class="veil">
+  <div class="panel">
+    <p class="kicker"><span class="dot"></span><span id="menu-online">connecting…</span></p>
+    <h1 class="logo">Gravity<br><span>Wells</span></h1>
+    <p class="pitch">Bend your shot around stars, moons and black holes. <b>Everyone fires at once.</b> Last planet standing wins.</p>
+    <form id="play-form" class="row" autocomplete="off">
+      <label class="sr" for="name">Your name</label>
+      <input id="name" maxlength="16" placeholder="Your name" spellcheck="false">
+      <button class="btn primary" type="submit">Play now <span aria-hidden="true">→</span></button>
+    </form>
+    <div class="row private">
+      <button class="btn ghost" type="button" id="btn-create">Create private room</button>
+      <form id="join-form" class="join" autocomplete="off">
+        <label class="sr" for="code">Room code</label>
+        <input id="code" maxlength="4" placeholder="CODE" spellcheck="false" autocapitalize="characters">
+        <button class="btn ghost" type="submit">Join</button>
+      </form>
+    </div>
+    <ul class="how">
+      <li><b>01</b><span><b>Drag from your planet</b> to aim. Farther means more power. You only get to see the first stretch of your path.</span></li>
+      <li><b>02</b><span>When the timer runs out, <b>every shot launches together</b>. Everything with mass pulls on them, planets included.</span></li>
+      <li><b>03</b><span>Three hits and your planet is gone. Orbit something once before you hit and it counts <b>double</b>.</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ───────── lobby ───────── -->
+<div id="lobby" class="veil" hidden>
+  <div class="panel">
+    <p class="kicker" id="lobby-kicker">Quick match</p>
+    <h2 class="lobby-title" id="lobby-title">Finding players…</h2>
+    <div class="code-box" id="code-box" hidden>
+      <span class="code" id="lobby-code">····</span>
+      <button class="btn ghost small" id="btn-copy" type="button">Copy invite link</button>
+    </div>
+    <ul class="people" id="people"></ul>
+    <div class="bots-row" id="bots-row" hidden>
+      <span>Bots</span>
+      <div class="stepper">
+        <button type="button" id="bots-minus" aria-label="Fewer bots">−</button>
+        <b id="bots-n">1</b>
+        <button type="button" id="bots-plus" aria-label="More bots">+</button>
+      </div>
+    </div>
+    <p class="lobby-note" id="lobby-note"></p>
+    <div class="row">
+      <button class="btn ghost" type="button" id="btn-lobby-leave">Leave</button>
+      <button class="btn primary" type="button" id="btn-start">Start now</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── results ───────── -->
+<div id="results" class="veil soft" hidden>
+  <div class="panel">
+    <p class="kicker" id="res-kicker">Match over</p>
+    <h2 class="res-title" id="res-title">Vega wins</h2>
+    <ol class="res" id="res-list"></ol>
+    <div class="row">
+      <button class="btn ghost" type="button" id="btn-res-menu">Menu</button>
+      <button class="btn primary" type="button" id="btn-again">Play again</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script type="module" src="js/main.js?v=1"></script>
+</body>
+</html>
